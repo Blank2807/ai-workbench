@@ -10,7 +10,11 @@ from modules.ide.tools import (
     select_file_dialog,
     select_workspace_folder,
 )
-from modules.github.tools import (git_current_branch,git_diff,git_status)
+from modules.github.tools import (
+    git_current_branch,
+    git_diff,
+    git_status,
+)
 
 logger = setup_logger()
 

@@ -7,7 +7,7 @@ from typing import Any, Dict, List, Optional
 from tkinter import filedialog
 
 
-ROOT_DIR = Path(__file__).resolve().parent
+ROOT_DIR = Path(__file__).resolve().parents[2]
 
 WORKSPACE_STATE = {
     "workspace_root": ROOT_DIR,
