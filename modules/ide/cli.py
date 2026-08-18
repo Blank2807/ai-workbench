@@ -14,6 +14,8 @@ from modules.github.tools import (
     git_current_branch,
     git_diff,
     git_status,
+    git_commit,
+    git_add_all
 )
 
 logger = setup_logger()
@@ -36,6 +38,8 @@ def run_ide_cli() -> None:
     print("Type '/git-status' to show changed files.")
     print("Type '/git-diff' to show current code diff.")
     print("Type '/git-branch' to show current Git branch.")
+    print("Type '/git-stage' to stage all current changes.")
+    print("Type '/git-commit' to commit staged changes.")
     print("")
     print("")
 
@@ -97,6 +101,38 @@ def run_ide_cli() -> None:
         if user_question.lower() in {"/git-branch", "git branch"}:
             result = git_current_branch()
             print_json("[IDE_CLI] Current Git branch", result)
+            continue
+
+        if user_question.lower() in {"/git-stage", "git stage", "git add"}:
+            confirm = input(
+                "This will run 'git add .' and stage all changes. Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] Git stage cancelled.\n")
+                continue
+
+            result = git_add_all()
+            print_json("[IDE_CLI] Git stage result", result)
+            continue
+        
+        if user_question.lower() in {"/git-commit", "git commit"}:
+            message = input("Enter commit message: ").strip()
+
+            if not message:
+                print("[IDE_CLI] Commit cancelled. Commit message is required.\n")
+                continue
+
+            confirm = input(
+                f"This will run git commit -m \"{message}\". Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] Git commit cancelled.\n")
+                continue
+
+            result = git_commit(message)
+            print_json("[IDE_CLI] Git commit result", result)
             continue
         if not user_question:
             continue
