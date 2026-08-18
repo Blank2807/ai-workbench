@@ -1,5 +1,4 @@
 import subprocess
-from pathlib import Path
 from typing import Any, Dict, List
 
 from modules.ide.tools import workspace_root
@@ -12,6 +11,8 @@ def run_git_command(command: List[str], timeout: int = 60) -> Dict[str, Any]:
             cwd=workspace_root(),
             capture_output=True,
             text=True,
+            encoding="utf-8",
+            errors="replace",
             timeout=timeout,
         )
 
@@ -56,10 +57,10 @@ def git_commit(message: str) -> Dict[str, Any]:
 
 
 def git_push(branch_name: str) -> Dict[str, Any]:
-    return run_git_command(["git", "push", "-u", "origin", branch_name])
+    return run_git_command(["git", "push", "-u", "origin", branch_name], timeout=120)
 
 
-def github_create_pr(title: str, body: str, base: str = "main") -> Dict[str, Any]:
+def github_create_pr(title: str, body: str, base: str = "master") -> Dict[str, Any]:
     return run_git_command(
         [
             "gh",
@@ -74,3 +75,27 @@ def github_create_pr(title: str, body: str, base: str = "main") -> Dict[str, Any
         ],
         timeout=120,
     )
+
+
+def github_pr_status() -> Dict[str, Any]:
+    return run_git_command(["gh", "pr", "status"], timeout=120)
+
+
+def github_pr_view() -> Dict[str, Any]:
+    return run_git_command(["gh", "pr", "view", "--web"], timeout=120)
+
+
+def github_pr_checks() -> Dict[str, Any]:
+    return run_git_command(["gh", "pr", "checks"], timeout=120)
+
+
+def github_pr_edit(title: str, body: str) -> Dict[str, Any]:
+    command = ["gh", "pr", "edit"]
+
+    if title:
+        command.extend(["--title", title])
+
+    if body:
+        command.extend(["--body", body])
+
+    return run_git_command(command, timeout=120)

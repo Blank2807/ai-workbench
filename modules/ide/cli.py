@@ -11,11 +11,18 @@ from modules.ide.tools import (
     select_workspace_folder,
 )
 from modules.github.tools import (
+    git_add_all,
+    git_commit,
+    git_create_branch,
     git_current_branch,
     git_diff,
+    git_push,
     git_status,
-    git_commit,
-    git_add_all
+    github_create_pr,
+    github_pr_checks,
+    github_pr_edit,
+    github_pr_status,
+    github_pr_view,
 )
 
 logger = setup_logger()
@@ -40,6 +47,13 @@ def run_ide_cli() -> None:
     print("Type '/git-branch' to show current Git branch.")
     print("Type '/git-stage' to stage all current changes.")
     print("Type '/git-commit' to commit staged changes.")
+    print("Type '/git-create-branch' to create and switch to a new branch.")
+    print("Type '/git-push' to push current branch to origin.")
+    print("Type '/create-pr' to create a GitHub pull request.")
+    print("Type '/pr-status' to show GitHub PR status.")
+    print("Type '/pr-view' to open the current PR in browser.")
+    print("Type '/pr-checks' to show PR CI/check status.")
+    print("Type '/pr-edit' to edit current PR title/body.")
     print("")
     print("")
 
@@ -134,6 +148,110 @@ def run_ide_cli() -> None:
             result = git_commit(message)
             print_json("[IDE_CLI] Git commit result", result)
             continue
+
+        if user_question.lower() in {"/git-create-branch", "git create branch", "git new branch"}:
+            branch_name = input("Enter new branch name: ").strip()
+
+            if not branch_name:
+                print("[IDE_CLI] Branch creation cancelled. Branch name is required.\n")
+                continue
+
+            confirm = input(
+                f"This will run git checkout -b \"{branch_name}\". Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] Git branch creation cancelled.\n")
+                continue
+
+            result = git_create_branch(branch_name)
+            print_json("[IDE_CLI] Git create branch result", result)
+            continue
+
+        if user_question.lower() in {"/git-push", "git push"}:
+            branch_result = git_current_branch()
+            if not branch_result.get("success"):
+                print_json("[IDE_CLI] Could not detect current branch", branch_result)
+                continue
+            branch_name = branch_result.get("stdout", "").strip()
+            if not branch_name:
+                print("[IDE_CLI] Git push cancelled. Current branch could not be detected.\n")
+                continue
+            confirm = input(
+                f"This will push branch '{branch_name}' to origin. Continue? (yes/no): ").strip().lower()
+            if confirm != "yes":
+                print("[IDE_CLI] Git push cancelled.\n")
+                continue
+            result = git_push(branch_name)
+            print_json("[IDE_CLI] Git push result", result)
+            continue
+
+        if user_question.lower() in {"/create-pr", "create pr", "github pr"}:
+            branch_result = git_current_branch()
+            if not branch_result.get("success"):
+                print_json("[IDE_CLI] Could not detect current branch", branch_result)
+                continue
+            branch_name = branch_result.get("stdout", "").strip()
+            if not branch_name:
+                print("[IDE_CLI] PR creation cancelled. Current branch could not be detected.\n")
+                continue
+            default_title = f"Changes from {branch_name}"
+            title = input(f"Enter PR title [{default_title}]: ").strip()
+            if not title:
+                title = default_title
+            body = input("Enter PR body: ").strip()
+            if not body:
+                body = "Created from AI Workbench CLI."
+            base = input("Enter base branch [master]: ").strip()
+            if not base:
+                base = "master"
+            confirm = input(f"This will create a PR from '{branch_name}' into '{base}'. Continue? (yes/no): ").strip().lower()
+            if confirm != "yes":
+                print("[IDE_CLI] PR creation cancelled.\n")
+                continue
+            result = github_create_pr(
+                title=title,
+                body=body,
+                base=base,
+            )
+            print_json("[IDE_CLI] GitHub PR result", result)
+            continue
+
+        if user_question.lower() in {"/pr-status", "pr status"}:
+            result = github_pr_status()
+            print_json("[IDE_CLI] GitHub PR status", result)
+            continue
+
+        if user_question.lower() in {"/pr-view", "pr view"}:
+            result = github_pr_view()
+            print_json("[IDE_CLI] GitHub PR view", result)
+            continue
+
+        if user_question.lower() in {"/pr-checks", "pr checks"}:
+            result = github_pr_checks()
+            print_json("[IDE_CLI] GitHub PR checks", result)
+            continue
+
+        if user_question.lower() in {"/pr-edit", "pr edit"}:
+            title = input("Enter new PR title, or press Enter to keep existing: ").strip()
+            body = input("Enter new PR body, or press Enter to keep existing: ").strip()
+
+            if not title and not body:
+                print("[IDE_CLI] PR edit cancelled. No title or body provided.\n")
+                continue
+
+            confirm = input(
+                "This will edit the current branch PR. Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] PR edit cancelled.\n")
+                continue
+
+            result = github_pr_edit(title=title, body=body)
+            print_json("[IDE_CLI] GitHub PR edit result", result)
+            continue
+
         if not user_question:
             continue
 
