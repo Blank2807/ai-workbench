@@ -10,7 +10,7 @@ from modules.ide.tools import (
     select_file_dialog,
     select_workspace_folder,
 )
-
+from modules.github.tools import (git_current_branch,git_diff,git_status)
 
 logger = setup_logger()
 
@@ -29,6 +29,10 @@ def run_ide_cli() -> None:
     print("Type '/context' to view active workspace/file/folder.")
     print("Type '/run-file' to run the active file and show raw output.")
     print("Type '/fix-run' to run, debug, safely fix, and run again.")
+    print("Type '/git-status' to show changed files.")
+    print("Type '/git-diff' to show current code diff.")
+    print("Type '/git-branch' to show current Git branch.")
+    print("")
     print("")
 
     chat_history: List[Dict[str, Any]] = []
@@ -76,7 +80,20 @@ def run_ide_cli() -> None:
 
             print(f"\nAgent:\n{answer}\n")
             continue
+        if user_question.lower() in {"/git-status", "git status"}:
+            result = git_status()
+            print_json("[IDE_CLI] Git status", result)
+            continue
 
+        if user_question.lower() in {"/git-diff", "git diff"}:
+            result = git_diff()
+            print_json("[IDE_CLI] Git diff", result)
+            continue
+
+        if user_question.lower() in {"/git-branch", "git branch"}:
+            result = git_current_branch()
+            print_json("[IDE_CLI] Current Git branch", result)
+            continue
         if not user_question:
             continue
 
