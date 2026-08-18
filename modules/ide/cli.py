@@ -16,7 +16,8 @@ from modules.github.tools import (
     git_status,
     git_commit,
     git_add_all,
-    git_create_branch
+    git_create_branch,
+    git_push
 )
 
 logger = setup_logger()
@@ -39,9 +40,10 @@ def run_ide_cli() -> None:
     print("Type '/git-status' to show changed files.")
     print("Type '/git-diff' to show current code diff.")
     print("Type '/git-branch' to show current Git branch.")
+    print("Type '/git-create-branch' to create and switch to a new branch.")
     print("Type '/git-stage' to stage all current changes.")
     print("Type '/git-commit' to commit staged changes.")
-    print("Type '/git-create-branch' to create and switch to a new branch.")
+    print("Type '/git-push' to push current branch to origin.")
     print("")
     print("")
 
@@ -151,7 +153,31 @@ def run_ide_cli() -> None:
             result = git_create_branch(branch_name)
             print_json("[IDE_CLI] Git create branch result", result)
             continue
+        if user_question.lower() in {"/git-push", "git push"}:
+            branch_result = git_current_branch()
 
+            if not branch_result.get("success"):
+                print_json("[IDE_CLI] Could not detect current branch", branch_result)
+                continue
+
+            branch_name = branch_result.get("stdout", "").strip()
+
+            if not branch_name:
+                print("[IDE_CLI] Git push cancelled. Current branch could not be detected.\n")
+                continue
+
+            confirm = input(
+                f"This will push branch '{branch_name}' to origin. Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] Git push cancelled.\n")
+                continue
+
+            result = git_push(branch_name)
+            print_json("[IDE_CLI] Git push result", result)
+            continue
+        
         if not user_question:
             continue
 
