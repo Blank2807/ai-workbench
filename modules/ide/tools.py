@@ -1094,7 +1094,7 @@ def run_file(path: str = "") -> Dict[str, Any]:
 
     if extension == ".py":
         return {
-            **run_command(["python", relative_path], timeout=60),
+            **run_command([sys.executable, relative_path], timeout=60),
             "tool": "run_file",
             "target_path": relative_path,
             "language": "python",
@@ -1203,7 +1203,7 @@ def run_project_tests(path: str = ".") -> Dict[str, Any]:
 
     if "python" in detected:
         return {
-            **run_command(["python", "-m", "pytest", "-v"], timeout=120),
+            **run_command([sys.executable, "-m", "pytest", "-v"], timeout=120),
             "tool": "run_project_tests",
             "project_type": "python",
         }
@@ -1305,7 +1305,7 @@ def run_project_build(path: str = ".") -> Dict[str, Any]:
 
     if "python" in detected:
         return {
-            **run_command(["python", "-m", "compileall", "."], timeout=120),
+            **run_command([sys.executable, "-m", "compileall", "."], timeout=120),
             "tool": "run_project_build",
             "project_type": "python",
         }
@@ -1395,7 +1395,7 @@ def run_static_analysis(path: str = ".") -> Dict[str, Any]:
         "checks": {},
     }
     if "python" in detected:
-        results["checks"]["compileall"] = run_command(["python", "-m", "compileall", "."], timeout=120)
+        results["checks"]["compileall"] = run_command([sys.executable, "-m", "compileall", "."], timeout=120)
         if command_exists("ruff"):
             results["checks"]["ruff"] = run_command(["ruff", "check", "."], timeout=120)
         if command_exists("bandit"):
