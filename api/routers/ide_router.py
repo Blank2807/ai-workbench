@@ -1,8 +1,11 @@
 from fastapi import APIRouter, HTTPException
 
+from modules.ide.agent import execute_ide_agent
+
 from api.schemas.ide_schema import (
     ProjectPathRequest,
     RunFileRequest,
+    IdeChatRequest,
 )
 from modules.ide.tools import (
     run_file,
@@ -55,3 +58,17 @@ def run_ide_static_analysis(request: ProjectPathRequest):
         raise HTTPException(status_code=400, detail=result)
 
     return result
+
+
+@router.post("/chat")
+def chat_with_ide_agent(request: IdeChatRequest):
+    answer, updated_chat_history = execute_ide_agent(
+        user_question=request.user_question,
+        chat_history=request.chat_history,
+    )
+
+    return {
+        "success": True,
+        "answer": answer,
+        "chat_history": updated_chat_history,
+    }
