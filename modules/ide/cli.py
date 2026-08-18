@@ -17,7 +17,8 @@ from modules.github.tools import (
     git_commit,
     git_add_all,
     git_create_branch,
-    git_push
+    git_push,
+    github_create_pr
 )
 
 logger = setup_logger()
@@ -44,6 +45,7 @@ def run_ide_cli() -> None:
     print("Type '/git-stage' to stage all current changes.")
     print("Type '/git-commit' to commit staged changes.")
     print("Type '/git-push' to push current branch to origin.")
+    print("Type '/create-pr' to create a GitHub pull request.")
     print("")
     print("")
 
@@ -177,7 +179,41 @@ def run_ide_cli() -> None:
             result = git_push(branch_name)
             print_json("[IDE_CLI] Git push result", result)
             continue
-        
+
+        if user_question.lower() in {"/create-pr", "create pr", "github pr"}:
+            branch_result = git_current_branch()
+
+            if not branch_result.get("success"):
+                print_json("[IDE_CLI] Could not detect current branch", branch_result)
+                continue
+            branch_name = branch_result.get("stdout", "").strip()
+
+            if not branch_name:
+                print("[IDE_CLI] PR creation cancelled. Current branch could not be detected.\n")
+                continue
+            default_title = f"Changes from {branch_name}"
+            title = input(f"Enter PR title [{default_title}]: ").strip()
+            if not title:
+                title = default_title
+            body = input("Enter PR body: ").strip()
+            if not body:
+                body = "Created from AI Workbench CLI."
+            base = input("Enter base branch [master]: ").strip()
+            if not base:
+                base = "master"
+            confirm = input(
+                f"This will create a PR from '{branch_name}' into '{base}'. Continue? (yes/no): ").strip().lower()
+            if confirm != "yes":
+                print("[IDE_CLI] PR creation cancelled.\n")
+                continue
+            result = github_create_pr(
+                title=title,
+                body=body,
+                base=base,
+            )
+            print_json("[IDE_CLI] GitHub PR result", result)
+            continue
+
         if not user_question:
             continue
 
