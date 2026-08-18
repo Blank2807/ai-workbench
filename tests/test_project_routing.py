@@ -1,5 +1,5 @@
 import pytest
-
+import sys
 from modules.ide import tools
 
 
@@ -29,7 +29,7 @@ def test_detect_project_type(workspace, make_file, indicator_file, expected_type
 @pytest.mark.parametrize(
     ("indicator_file", "expected_command"),
     [
-        ("requirements.txt", ["python", "-m", "pytest", "-v"]),
+        ("requirements.txt", [sys.executable, "-m", "pytest", "-v"]),
         ("package.json", ["npm", "test"]),
         ("pom.xml", ["mvn", "test"]),
         ("build.gradle", ["gradle", "test"]),
@@ -70,7 +70,7 @@ def test_run_project_tests_routes_to_language_runner(
 @pytest.mark.parametrize(
     ("indicator_file", "expected_command"),
     [
-        ("requirements.txt", ["python", "-m", "compileall", "."]),
+        ("requirements.txt", [sys.executable, "-m", "compileall", "."]),
         ("package.json", ["npm", "run", "build"]),
         ("pom.xml", ["mvn", "compile"]),
         ("build.gradle", ["gradle", "build"]),
