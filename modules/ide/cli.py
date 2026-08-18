@@ -15,7 +15,8 @@ from modules.github.tools import (
     git_diff,
     git_status,
     git_commit,
-    git_add_all
+    git_add_all,
+    git_create_branch
 )
 
 logger = setup_logger()
@@ -40,6 +41,7 @@ def run_ide_cli() -> None:
     print("Type '/git-branch' to show current Git branch.")
     print("Type '/git-stage' to stage all current changes.")
     print("Type '/git-commit' to commit staged changes.")
+    print("Type '/git-create-branch' to create and switch to a new branch.")
     print("")
     print("")
 
@@ -115,25 +117,41 @@ def run_ide_cli() -> None:
             result = git_add_all()
             print_json("[IDE_CLI] Git stage result", result)
             continue
-        
+
         if user_question.lower() in {"/git-commit", "git commit"}:
             message = input("Enter commit message: ").strip()
-
             if not message:
                 print("[IDE_CLI] Commit cancelled. Commit message is required.\n")
                 continue
-
             confirm = input(
                 f"This will run git commit -m \"{message}\". Continue? (yes/no): "
             ).strip().lower()
-
             if confirm != "yes":
                 print("[IDE_CLI] Git commit cancelled.\n")
                 continue
-
             result = git_commit(message)
             print_json("[IDE_CLI] Git commit result", result)
             continue
+
+        if user_question.lower() in {"/git-create-branch", "git create branch", "git new branch"}:
+            branch_name = input("Enter new branch name: ").strip()
+
+            if not branch_name:
+                print("[IDE_CLI] Branch creation cancelled. Branch name is required.\n")
+                continue
+
+            confirm = input(
+                f"This will run git checkout -b \"{branch_name}\". Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] Git branch creation cancelled.\n")
+                continue
+
+            result = git_create_branch(branch_name)
+            print_json("[IDE_CLI] Git create branch result", result)
+            continue
+
         if not user_question:
             continue
 
