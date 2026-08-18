@@ -74,3 +74,26 @@ def github_create_pr(title: str, body: str, base: str = "main") -> Dict[str, Any
         ],
         timeout=120,
     )
+
+def github_pr_status() -> Dict[str, Any]:
+    return run_git_command(["gh", "pr", "status"])
+
+
+def github_pr_view() -> Dict[str, Any]:
+    return run_git_command(["gh", "pr", "view", "--web"])
+
+
+def github_pr_checks() -> Dict[str, Any]:
+    return run_git_command(["gh", "pr", "checks"])
+
+
+def github_pr_edit(title: str, body: str) -> Dict[str, Any]:
+    command = ["gh", "pr", "edit"]
+
+    if title:
+        command.extend(["--title", title])
+
+    if body:
+        command.extend(["--body", body])
+
+    return run_git_command(command)

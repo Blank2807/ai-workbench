@@ -11,14 +11,18 @@ from modules.ide.tools import (
     select_workspace_folder,
 )
 from modules.github.tools import (
+    git_add_all,
+    git_commit,
+    git_create_branch,
     git_current_branch,
     git_diff,
-    git_status,
-    git_commit,
-    git_add_all,
-    git_create_branch,
     git_push,
-    github_create_pr
+    git_status,
+    github_create_pr,
+    github_pr_checks,
+    github_pr_edit,
+    github_pr_status,
+    github_pr_view,
 )
 
 logger = setup_logger()
@@ -46,6 +50,10 @@ def run_ide_cli() -> None:
     print("Type '/git-commit' to commit staged changes.")
     print("Type '/git-push' to push current branch to origin.")
     print("Type '/create-pr' to create a GitHub pull request.")
+    print("Type '/pr-status' to show GitHub PR status.")
+    print("Type '/pr-view' to open the current PR in browser.")
+    print("Type '/pr-checks' to show PR CI/check status.")
+    print("Type '/pr-edit' to edit current PR title/body.")
     print("")
     print("")
 
@@ -155,6 +163,7 @@ def run_ide_cli() -> None:
             result = git_create_branch(branch_name)
             print_json("[IDE_CLI] Git create branch result", result)
             continue
+
         if user_question.lower() in {"/git-push", "git push"}:
             branch_result = git_current_branch()
 
@@ -213,7 +222,40 @@ def run_ide_cli() -> None:
             )
             print_json("[IDE_CLI] GitHub PR result", result)
             continue
+        if user_question.lower() in {"/pr-status", "pr status"}:
+            result = github_pr_status()
+            print_json("[IDE_CLI] GitHub PR status", result)
+            continue
 
+        if user_question.lower() in {"/pr-view", "pr view"}:
+            result = github_pr_view()
+            print_json("[IDE_CLI] GitHub PR view", result)
+            continue
+
+        if user_question.lower() in {"/pr-checks", "pr checks"}:
+            result = github_pr_checks()
+            print_json("[IDE_CLI] GitHub PR checks", result)
+            continue
+
+        if user_question.lower() in {"/pr-edit", "pr edit"}:
+            title = input("Enter new PR title, or press Enter to keep existing: ").strip()
+            body = input("Enter new PR body, or press Enter to keep existing: ").strip()
+
+            if not title and not body:
+                print("[IDE_CLI] PR edit cancelled. No title or body provided.\n")
+                continue
+
+            confirm = input(
+                "This will edit the current branch PR. Continue? (yes/no): "
+            ).strip().lower()
+
+            if confirm != "yes":
+                print("[IDE_CLI] PR edit cancelled.\n")
+                continue
+
+            result = github_pr_edit(title=title, body=body)
+            print_json("[IDE_CLI] GitHub PR edit result", result)
+            continue
         if not user_question:
             continue
 
