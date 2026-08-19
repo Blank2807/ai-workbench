@@ -36,3 +36,7 @@ build/
 
 # Local backups created by app
 *.bak
+
+__pycache__/
+*.py[cod]
+.pytest_cache/

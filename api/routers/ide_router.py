@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
 from modules.ide.agent import execute_ide_agent
-
+from api.services.response_formatter import format_test_result
 from api.schemas.ide_schema import (
     ProjectPathRequest,
     RunFileRequest,
@@ -33,11 +33,11 @@ def run_ide_file(request: RunFileRequest):
 @router.post("/run-tests")
 def run_ide_tests(request: ProjectPathRequest):
     result = run_project_tests(request.path)
-
+    formatted = format_test_result(result)
     if not result.get("success"):
-        raise HTTPException(status_code=400, detail=result)
+        raise HTTPException(status_code=400, detail=formatted)
 
-    return result
+    return formatted
 
 
 @router.post("/build")
