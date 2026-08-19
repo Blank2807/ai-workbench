@@ -3,6 +3,7 @@ import sys
 
 from fastapi import FastAPI
 import uvicorn
+from fastapi.middleware.cors import CORSMiddleware
 
 API_DIR = Path(__file__).resolve().parent
 PROJECT_ROOT = API_DIR.parent
@@ -19,6 +20,17 @@ app = FastAPI(
     title="AI Workbench API",
     description="Backend API for IDE, Git, GitHub, and future AI Workbench modules.",
     version="0.1.0",
+)
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=[
+        "http://localhost:5173",
+        "http://127.0.0.1:5173",
+    ],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.include_router(git_router)
