@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
+from api.services.response_formatter import format_git_status
+
 from api.schemas.git_schema import (
     GitCommitRequest,
     GitCreateBranchRequest,
@@ -23,7 +25,8 @@ router = APIRouter(
 
 @router.get("/status")
 def get_git_status():
-    return git_status()
+    result = git_status()
+    return format_git_status(result)
 
 
 @router.get("/diff")

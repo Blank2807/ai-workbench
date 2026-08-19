@@ -1,5 +1,7 @@
 from fastapi import APIRouter, HTTPException
 
+from api.services.response_formatter import format_pr_checks
+
 from api.schemas.github_schema import (
     CreatePullRequestRequest,
     EditPullRequestRequest,
@@ -45,11 +47,11 @@ def get_pull_request_status():
 @router.get("/pr-checks")
 def get_pull_request_checks():
     result = github_pr_checks()
+    formatted = format_pr_checks(result)
+    if not result.get("success") and formatted.get("status") != "pending":
+        raise HTTPException(status_code=400, detail=formatted)
 
-    if not result.get("success"):
-        raise HTTPException(status_code=400, detail=result)
-
-    return result
+    return formatted
 
 
 @router.get("/pr-view")
